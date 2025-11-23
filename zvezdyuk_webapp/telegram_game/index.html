@@ -1,50 +1,279 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zvezdyuk — Telegram Web Game (Demo)</title>
-  <link rel="stylesheet" href="./style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Zvezdyuk — Ship Run</title>
+<style>
+  :root{
+    --bg:#071022;
+    --panel:#0b1220;
+    --accent:#2ee6c4;
+    --muted:#98a0b3;
+    --btn:#12232b;
+    --glass: rgba(255,255,255,0.04);
+    --glass-2: rgba(255,255,255,0.03);
+    --danger:#ff6b6b;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,#020617 0%, #071022 100%); color:#eef2f7;}
+  .wrap{max-width:980px;margin:0 auto;padding:18px;box-sizing:border-box;}
+  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logo{display:flex;gap:12px;align-items:center}
+  .logo img{width:56px;height:56px;border-radius:12px;object-fit:cover;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .title{line-height:1}
+  .title h1{margin:0;font-size:18px;letter-spacing:-0.02em}
+  .title p{margin:0;font-size:12px;color:var(--muted)}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:12px;border-radius:14px;box-shadow: 0 6px 30px rgba(2,8,20,0.6); overflow:hidden}
+  .game-area{display:flex;flex-direction:column;gap:12px}
+  .art{display:flex;align-items:center;justify-content:center;height:220px;border-radius:12px;background:linear-gradient(180deg,#061124, #071226); overflow:hidden; position:relative}
+  .art img{max-height:100%; max-width:100%; object-fit:contain; transform:translateY(6px)}
+  .fuel-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
+  .meter{flex:1;margin-left:10px;height:12px;background:var(--glass);border-radius:8px;position:relative;overflow:hidden}
+  .meter > i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--accent),#7be9d6);width:70%;transition:width 400ms cubic-bezier(.2,.9,.2,1)}
+  .meter-label{font-size:12px;color:var(--muted)}
+  .controls{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
+  .btn{flex:1;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,var(--btn), #0d1d23);border:1px solid rgba(255,255,255,0.04);color:#e9fbf6;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;box-shadow: 0 6px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none}
+  .btn.secondary{background:linear-gradient(180deg,#0d1720,#0b1318); color:var(--muted); font-weight:600}
+  .btn.small{padding:8px;border-radius:10px;font-size:14px}
+  .progress-row{display:flex;gap:10px;align-items:center}
+  .progress-track{height:8px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:8%;transition:width 400ms ease}
+  .footer-actions{display:flex;gap:10px;justify-content:space-between;margin-top:12px}
+  .muted{color:var(--muted);font-size:13px}
+  /* big bottom buttons (Telegram-style) */
+  .bottom-actions{position:fixed;left:12px;right:12px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:60}
+  .tg-btn{background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;color:#eef2f7;font-weight:700;text-align:center;box-shadow: 0 12px 40px rgba(0,0,0,0.6);cursor:pointer}
+  .tg-btn .icon{margin-right:8px}
+  /* responsive */
+  @media(min-width:720px){
+    .wrap{padding:28px}
+    .art{height:360px}
+    .hud .title h1{font-size:20px}
+  }
+  /* small animation for ship (simulate movement) */
+  .ship-float{animation:float 3.2s ease-in-out infinite}
+  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+  /* subtle glass blur */
+  .panel:before{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); pointer-events:none}
+</style>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>Zvezdyuk — Ship Run (Demo)</h1>
-      <p class="subtitle">A tiny demo Telegram WebApp. Press <strong>Start</strong> to begin.</p>
-    </header>
-
-    <main>
-      <div id="game-area" class="hidden">
-        <div id="hud">
-          <div id="score">Fuel: <span id="fuel">100</span>%</div>
-          <div id="level">Level: <span id="level-num">1</span></div>
-        </div>
-
-        <div id="viewport">
-          <img id="character" src="./public/character_front.png" alt="Zvezdyuk" />
-          <div id="earth" class="hidden">🌍</div>
-        </div>
-
-        <div id="controls">
-          <button id="boost">Boost</button>
-          <button id="brake">Brake</button>
-          <button id="send-score">Send Score</button>
-        </div>
+<div class="wrap">
+  <div class="hud">
+    <div class="logo">
+      <img id="characterArt" alt="Zvezdyuk" src="/mnt/data/1000012485.jpg">
+      <div class="title">
+        <h1>Zvezdyuk — Ship Run</h1>
+        <p>Мини-игра: доберись до Земли</p>
       </div>
-
-      <div id="start-screen">
-        <button id="start-btn">Start</button>
-        <p class="hint">This demo uses Telegram Web Apps API. When deployed and opened inside Telegram — the WebApp will receive a Telegram.WebApp object.</p>
-      </div>
-
-      <div id="msg" class="hidden"></div>
-    </main>
-
-    <footer>
-      <small>Built for testing and local deploy. See README for setup.</small>
-    </footer>
+    </div>
+    <div class="muted">Level <strong id="level">1</strong></div>
   </div>
 
-  <script src="./app.js"></script>
+  <div class="panel game-area">
+    <div class="art">
+      <!-- ART: will be replaced with your image; keep SVG overlay for effects -->
+      <img id="shipArt" class="ship-float" src="/mnt/data/1000012485.jpg" alt="Zvezdyuk">
+    </div>
+
+    <div class="fuel-row">
+      <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
+      <div class="meter" aria-hidden="true"><i id="fuelBar" style="width:100%"></i></div>
+    </div>
+
+    <div class="controls">
+      <button id="boostBtn" class="btn small">🚀 Boost</button>
+      <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
+      <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
+    </div>
+
+    <div class="footer-actions">
+      <div class="progress-row">
+        <div class="muted">Progress</div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar" style="width:4%"></div></div>
+        <div class="muted"><span id="progressPercent">4%</span></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button id="startBtn" class="btn">▶ Start</button>
+        <div style="flex:1"></div>
+        <div class="muted">Status: <span id="statusText">idle</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-actions" id="bottomActions">
+  <div id="playBig" class="tg-btn">🎮 Играть</div>
+  <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
+  <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
+</div>
+
+<script>
+/*
+  Simple game logic:
+  - fuel decreases over time while playing
+  - boost consumes more fuel but speeds progress
+  - brake slows progress and consumes less fuel
+  - progress increases; when reaches 100% -> win
+  Telegram integration: if Telegram.WebApp present, use it to close/open
+*/
+
+const fuelBar = document.getElementById('fuelBar');
+const fuelPercent = document.getElementById('fuelPercent');
+const progressBar = document.getElementById('progressBar');
+const progressPercent = document.getElementById('progressPercent');
+const statusText = document.getElementById('statusText');
+const levelEl = document.getElementById('level');
+
+let fuel = 100;
+let progress = 4;
+let playing = false;
+let boost = false;
+let brake = false;
+let tickInterval = null;
+let level = 1;
+
+function updateUI(){
+  fuelBar.style.width = (fuel<=0?0:fuel) + '%';
+  fuelPercent.textContent = Math.max(0,Math.round(fuel)) + '%';
+  progressBar.style.width = progress + '%';
+  progressPercent.textContent = Math.round(progress) + '%';
+  statusText.textContent = playing ? (boost ? 'boost' : brake ? 'braking' : 'running') : 'idle';
+  levelEl.textContent = level;
+}
+
+// game tick
+function startTick(){
+  if(tickInterval) return;
+  tickInterval = setInterval(()=>{
+    if(!playing) return;
+    // fuel consumption
+    const baseDrain = 0.18; // per tick
+    const drain = baseDrain + (boost?0.6:0) - (brake?0.12:0);
+    fuel -= drain;
+    if(fuel < 0) fuel = 0;
+    // progress
+    const baseProgress = 0.12;
+    const prog = baseProgress + (boost?1.2:0) - (brake?0.08:0);
+    progress += prog;
+    // if no fuel, progress slows dramatically
+    if(fuel<=0){
+      progress -= 0.6;
+      if(progress < 0) progress = 0;
+    }
+    // clamp
+    if(progress >= 100){
+      progress = 100;
+      endRun(true);
+    }
+    updateUI();
+  }, 200); // 200ms tick
+}
+
+function stopTick(){
+  clearInterval(tickInterval);
+  tickInterval = null;
+}
+
+function startRun(){
+  if(playing) return;
+  playing = true;
+  boost = false;
+  brake = false;
+  statusText.textContent = 'starting';
+  startTick();
+}
+
+function endRun(win=false){
+  playing = false;
+  stopTick();
+  if(win){
+    statusText.textContent = 'landed! 🎉';
+    // increase level, reset small bits
+    level++;
+    setTimeout(()=>{ resetForNext(); }, 800);
+  } else {
+    statusText.textContent = 'stopped';
+  }
+  updateUI();
+}
+
+function resetForNext(){
+  fuel = 100;
+  progress = 4;
+  updateUI();
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  startRun();
+  // if inside Telegram, try to use WebApp API
+  safeOpenWebApp();
+});
+document.getElementById('boostBtn').addEventListener('mousedown', ()=>{ boost=true; updateUI() });
+document.getElementById('boostBtn').addEventListener('touchstart', ()=>{ boost=true; updateUI() });
+document.getElementById('boostBtn').addEventListener('mouseup', ()=>{ boost=false; updateUI() });
+document.getElementById('boostBtn').addEventListener('touchend', ()=>{ boost=false; updateUI() });
+
+document.getElementById('brakeBtn').addEventListener('mousedown', ()=>{ brake=true; updateUI() });
+document.getElementById('brakeBtn').addEventListener('touchstart', ()=>{ brake=true; updateUI() });
+document.getElementById('brakeBtn').addEventListener('mouseup', ()=>{ brake=false; updateUI() });
+document.getElementById('brakeBtn').addEventListener('touchend', ()=>{ brake=false; updateUI() });
+
+document.getElementById('sendScoreBtn').addEventListener('click', ()=>{
+  // placeholder: send score to bot backend / show share
+  alert('Score отправлен (заглушка)');
+});
+
+document.getElementById('playBig').addEventListener('click', ()=>{
+  // prefer opening WebApp in Telegram: if open, it already is.
+  startRun();
+  safeOpenWebApp();
+});
+document.getElementById('leadersBig').addEventListener('click', ()=>{
+  // You will implement leaderboard endpoint later
+  alert('Лидеры появятся позже. (заглушка)');
+});
+document.getElementById('infoBig').addEventListener('click', ()=>{
+  alert('Проект ZVIZDYUK: мини-игра про полёт к Земле. Подписывайся на канал.');
+});
+
+// Try safely to open the current web app in Telegram (if inside Telegram it should already be opened)
+// This behaviour allows 'open in webapp' when user hits Play from bot.
+function safeOpenWebApp(){
+  try {
+    if(window.Telegram && Telegram.WebApp){
+      // running embedded inside Telegram WebView: we can just expand / focus
+      Telegram.WebApp.showMainButton && Telegram.WebApp.showMainButton();
+      // no-op: the WebApp is already open
+    } else {
+      // open app URL in new window — this is what we do when Play from the bot must navigate
+      // But in Telegram this will be intercepted and played in WebApp view.
+      const url = window.location.href;
+      window.open(url, '_blank');
+    }
+  } catch(e){
+    console.warn('safeOpenWebApp failed', e);
+    window.open(window.location.href,'_blank');
+  }
+}
+
+// init
+updateUI();
+startTick();
+
+// touch-friendly: prevent scrolling while pressing
+['touchstart','touchmove','touchend'].forEach(ev=>{
+  document.addEventListener(ev, function(e){
+    // noop placeholder
+  }, {passive:true});
+});
+
+/* NOTE:
+   ASSET URL:
+   - Right now this file points to local uploaded path: /mnt/data/1000012485.jpg
+   - On Vercel you NEED to put the image into the repo (e.g. telegram_game/public/character_front.png)
+     then replace both src attributes above with: '/character_front.png' or '/public/character_front.png' according to your build.
+*/
+</script>
 </body>
 </html>
