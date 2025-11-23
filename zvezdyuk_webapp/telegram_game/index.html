@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zvezdyuk — Telegram Web Game (Demo)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Zvezdyuk — Ship Run (Demo)</h1>
+      <p class="subtitle">A tiny demo Telegram WebApp. Press <strong>Start</strong> to begin.</p>
+    </header>
+
+    <main>
+      <div id="game-area" class="hidden">
+        <div id="hud">
+          <div id="score">Fuel: <span id="fuel">100</span>%</div>
+          <div id="level">Level: <span id="level-num">1</span></div>
+        </div>
+
+        <div id="viewport">
+          <img id="character" src="./public/character_front.png" alt="Zvezdyuk" />
+          <div id="earth" class="hidden">🌍</div>
+        </div>
+
+        <div id="controls">
+          <button id="boost">Boost</button>
+          <button id="brake">Brake</button>
+          <button id="send-score">Send Score</button>
+        </div>
+      </div>
+
+      <div id="start-screen">
+        <button id="start-btn">Start</button>
+        <p class="hint">This demo uses Telegram Web Apps API. When deployed and opened inside Telegram — the WebApp will receive a Telegram.WebApp object.</p>
+      </div>
+
+      <div id="msg" class="hidden"></div>
+    </main>
+
+    <footer>
+      <small>Built for testing and local deploy. See README for setup.</small>
+    </footer>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
