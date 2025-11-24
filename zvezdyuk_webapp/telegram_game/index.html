@@ -3,240 +3,468 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Zvezdyuk — Ship Run</title>
+<title>Zvezdyuk — Ship Run (Enhanced)</title>
 
+<!-- styles -->
 <style>
   :root{
-    --bg:#071022;
-    --panel:#0b1220;
+    --bg-start:#020617;
+    --bg-end:#071022;
+    --panel:#09141b;
     --accent:#2ee6c4;
+    --accent-2:#46f0d0;
     --muted:#98a0b3;
-    --btn:#12232b;
-    --glass: rgba(255,255,255,0.04);
-    --glass-2: rgba(255,255,255,0.03);
+    --glass: rgba(255,255,255,0.03);
+    --glass-2: rgba(255,255,255,0.02);
     --danger:#ff6b6b;
+    --gold:#ffd166;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,var(--bg-start) 0%, var(--bg-end) 100%); color:#eef2f7; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1024px;margin:0 auto;padding:20px;box-sizing:border-box;position:relative; z-index:2;}
+  body:before{
+    /* decorative space background */
+    content:"";
+    position:fixed;inset:0;z-index:0;
+    background-image: url('/mnt/data/A_digital_space_illustration_showcases_a_vast_expa.png');
+    background-size:cover; background-position:center;
+    opacity:0.14; filter: blur(6px) saturate(1.1);
+    pointer-events:none;
   }
 
-  html,body{
-    height:100%;margin:0;
-    font-family:Inter, system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-    background:linear-gradient(180deg,#020617 0%, #071022 100%);
-    color:#eef2f7;
-  }
-
-  .wrap{max-width:980px;margin:0 auto;padding:18px;box-sizing:border-box;}
-
-  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  /* HUD */
+  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;z-index:5}
   .logo{display:flex;gap:12px;align-items:center}
-  .logo img{
-    width:56px;height:56px;border-radius:12px;object-fit:cover;
-    box-shadow:0 8px 30px rgba(0,0,0,0.6)
-  }
-
+  .logo img{width:56px;height:56px;border-radius:12px;object-fit:cover;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
   .title h1{margin:0;font-size:18px;letter-spacing:-0.02em}
   .title p{margin:0;font-size:12px;color:var(--muted)}
 
-  .panel{
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    padding:12px;border-radius:14px;box-shadow:0 6px 30px rgba(2,8,20,0.6);overflow:hidden
-  }
-
-  .game-area{display:flex;flex-direction:column;gap:12px}
-
-  .art{
-    display:flex;align-items:center;justify-content:center;
-    height:220px;border-radius:12px;
-    background:linear-gradient(180deg,#061124,#071226);
-    overflow:hidden;position:relative
-  }
-
-  .art img{
-    max-height:100%;max-width:100%;object-fit:contain;
-    transform:translateY(6px);
-  }
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:14px;box-shadow: 0 8px 40px rgba(2,8,20,0.6); overflow:hidden; position:relative; z-index:3;}
+  .game-area{display:flex;flex-direction:column;gap:14px}
+  .art{display:flex;align-items:center;justify-content:center;height:360px;border-radius:12px;background:linear-gradient(180deg,#061124, #071226); overflow:hidden; position:relative}
+  .art img{max-height:92%; max-width:92%; object-fit:contain; transform:translateY(6px); transition: transform 220ms ease}
+  /* engine glow layer */
+  .engine-glow{position:absolute;left:0;right:0;bottom:26%;height:120px;pointer-events:none;mix-blend-mode:screen;opacity:0.9}
+  .engine-glow .g{position:absolute;left:50%;transform:translateX(-50%);width:220px;height:220px;border-radius:50%;filter:blur(40px); background: radial-gradient(circle at 50% 40%, rgba(46,230,196,0.9), rgba(46,230,196,0.25) 40%, transparent 60%)}
+  /* flame particles container */
+  .particles{position:absolute;left:0;right:0;bottom:8%;height:120px;pointer-events:none; overflow:visible}
 
   .fuel-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
-
-  .meter{
-    flex:1;margin-left:10px;height:12px;background:var(--glass);
-    border-radius:8px;position:relative;overflow:hidden
-  }
-
-  .meter > i{
-    position:absolute;left:0;top:0;bottom:0;
-    background:linear-gradient(90deg,var(--accent),#7be9d6);
-    width:70%;transition:width 400ms cubic-bezier(.2,.9,.2,1)
-  }
-
-  .meter-label{font-size:12px;color:var(--muted)}
+  .meter{flex:1;margin-left:10px;height:14px;background:var(--glass);border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+  .meter > i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:70%;transition:width 300ms cubic-bezier(.2,.9,.2,1)}
+  .meter-label{font-size:13px;color:var(--muted)}
 
   .controls{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
-
-  .btn{
-    flex:1;padding:12px 14px;border-radius:12px;
-    background:linear-gradient(180deg,var(--btn), #0d1d23);
-    border:1px solid rgba(255,255,255,0.04);color:#e9fbf6;
-    font-weight:600;display:flex;align-items:center;justify-content:center;
-    gap:10px;font-size:15px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none
-  }
-
-  .btn.secondary{background:linear-gradient(180deg,#0d1720,#0b1318);color:var(--muted)}
-  .btn.small{padding:8px;border-radius:10px;font-size:14px}
+  .btn{flex:1;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,#0c1a20, #07151a);border:1px solid rgba(255,255,255,0.03);color:#e9fbf6;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;box-shadow: 0 8px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none}
+  .btn.secondary{background:linear-gradient(180deg,#0b1318,#061018); color:var(--muted); font-weight:700}
+  .btn.small{padding:10px;border-radius:10px;font-size:14px}
 
   .progress-row{display:flex;gap:10px;align-items:center}
-
-  .progress-track{height:8px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
-  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:4%;transition:width 400ms ease}
-
-  .footer-actions{margin-top:12px}
+  .progress-track{height:10px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:8%;transition:width 300ms ease}
+  .footer-actions{display:flex;gap:10px;justify-content:space-between;margin-top:12px}
 
   .muted{color:var(--muted);font-size:13px}
 
-  .bottom-actions{
-    position:fixed;left:12px;right:12px;bottom:18px;
-    display:flex;flex-direction:column;gap:10px;z-index:60
+  /* big bottom buttons (Telegram-style) */
+  .bottom-actions{position:fixed;left:16px;right:16px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:60}
+  .tg-btn{background:rgba(255,255,255,0.03);border-radius:14px;padding:14px 16px;color:#eef2f7;font-weight:800;text-align:center;box-shadow: 0 12px 40px rgba(0,0,0,0.6);cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
+  .tg-btn .icon{margin-right:8px}
+
+  /* shake on boost */
+  .shake{animation:shake 250ms ease-in-out 0s 3}
+  @keyframes shake{
+    0%{transform:translateY(0) rotate(0deg)}
+    25%{transform:translateY(-4px) rotate(-0.5deg)}
+    50%{transform:translateY(0) rotate(0.5deg)}
+    75%{transform:translateY(-2px) rotate(-0.25deg)}
+    100%{transform:translateY(0) rotate(0deg)}
   }
 
-  .tg-btn{
-    background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;
-    color:#eef2f7;font-weight:700;text-align:center;
-    box-shadow:0 12px 40px rgba(0,0,0,0.6);cursor:pointer
-  }
+  /* atmosphere overlay (flashes) */
+  .atmo-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity 600ms ease}
+  .atmo-overlay.active{opacity:0.95}
+  .atmo-overlay .flash{position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,120,45,0.85), transparent 30%); mix-blend-mode:screen;filter:blur(30px);}
 
-  @media(min-width:720px){
-    .wrap{padding:28px}
-    .art{height:360px}
-    .hud .title h1{font-size:20px}
-  }
+  /* XP / Level box */
+  .xp-box{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+  .xp-bar{height:8px;background:rgba(255,255,255,0.02);border-radius:8px;overflow:hidden;flex:1}
+  .xp-bar > i{height:100%;background:linear-gradient(90deg, #ffd166, #ff8a65);width:30%;transition:width 300ms}
 
-  .ship-float{animation:float 3.2s ease-in-out infinite}
-  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+  /* reward badge */
+  .reward{display:inline-block;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));font-weight:700;color:var(--gold)}
+
+  /* responsive */
+  @media(max-width:720px){
+    .wrap{padding:12px}
+    .art{height:260px}
+    .logo img{width:48px;height:48px}
+  }
 </style>
 </head>
-
 <body>
-
-<div class="wrap">
-
-  <div class="hud">
-    <div class="logo">
-      <img id="characterArt" src="/images/character.png" alt="Zvezdyuk">
-      <div class="title">
-        <h1>Zvezdyuk — Ship Run</h1>
-        <p>Мини-игра: доберись до Земли</p>
-      </div>
-    </div>
-    <div class="muted">Level <strong id="level">1</strong></div>
-  </div>
-
-  <div class="panel game-area">
-
-    <div class="art">
-      <img id="shipArt" class="ship-float" src="/images/cockpit.png" alt="Zvezdyuk">
-    </div>
-
-    <div class="fuel-row">
-      <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
-      <div class="meter"><i id="fuelBar" style="width:100%"></i></div>
-    </div>
-
-    <div class="controls">
-      <button id="boostBtn" class="btn small">🚀 Boost</button>
-      <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
-      <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
-    </div>
-
-    <div class="footer-actions">
-      <div class="progress-row">
-        <div class="muted">Progress</div>
-        <div class="progress-track">
-          <div id="progressBar" class="progress-bar"></div>
+  <div class="wrap">
+    <div class="hud">
+      <div class="logo">
+        <!-- logo: положи файл в ту же систему или используй путь ниже -->
+        <img id="logoImg" src="/mnt/data/A_digital_illustration_logo_showcases_the_name_%22ZV.png" alt="ZV logo">
+        <div class="title">
+          <h1>Zvezdyuk — Ship Run</h1>
+          <p>Мини-игра: доберись до Земли</p>
         </div>
-        <div class="muted"><span id="progressPercent">4%</span></div>
       </div>
 
-      <div style="display:flex;gap:10px;margin-top:8px">
-        <button id="startBtn" class="btn">▶ Start</button>
-        <div style="flex:1"></div>
-        <div class="muted">Status: <span id="statusText">idle</span></div>
+      <div class="xp-box">
+        <div style="min-width:72px">Level <strong id="level">1</strong></div>
+        <div class="xp-bar" aria-hidden="true"><i id="xpBar" style="width:18%"></i></div>
+        <div style="min-width:96px;text-align:right;font-size:13px;color:var(--muted)"><span id="xpText">XP: 18 / 100</span></div>
       </div>
     </div>
 
+    <div class="panel game-area">
+      <div class="art" id="artWrap">
+        <!-- central cockpit / character art (путь к файлу в контейнере) -->
+        <img id="shipArt" class="ship-float" src="/mnt/data/ComfyUI_00013_.png" alt="Zvezdyuk cockpit">
+        <!-- engine glow -->
+        <div class="engine-glow" aria-hidden="true"><div class="g"></div></div>
+        <!-- particles holder -->
+        <div class="particles" id="particles"></div>
+        <!-- atmosphere overlay -->
+        <div class="atmo-overlay" id="atmoOverlay"><div class="flash"></div></div>
+      </div>
+
+      <div class="fuel-row">
+        <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
+        <div class="meter" aria-hidden="true"><i id="fuelBar" style="width:100%"></i></div>
+      </div>
+
+      <div class="controls">
+        <button id="boostBtn" class="btn small">🚀 Boost</button>
+        <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
+        <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
+      </div>
+
+      <div class="footer-actions">
+        <div class="progress-row" style="flex:1">
+          <div class="muted">Progress</div>
+          <div class="progress-track" style="margin-left:8px;flex:1"><div id="progressBar" class="progress-bar" style="width:4%"></div></div>
+          <div class="muted" style="min-width:48px;text-align:right"><span id="progressPercent">4%</span></div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center;margin-left:12px">
+          <button id="startBtn" class="btn">▶ Start</button>
+          <div style="width:8px"></div>
+          <div class="muted">Status: <span id="statusText">idle</span></div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 
-<div class="bottom-actions">
-  <div id="playBig" class="tg-btn">🎮 Играть</div>
-  <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
-  <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
-</div>
+  <div class="bottom-actions" id="bottomActions">
+    <div id="playBig" class="tg-btn">🎮 Играть</div>
+    <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
+    <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
+  </div>
 
+<!-- scripts -->
 <script>
-let fuel=100,progress=4,playing=false,boost=false,brake=false,level=1,tick=null;
+/* --- Game state --- */
+const state = {
+  fuel: 100,
+  progress: 4,
+  xp: 18,
+  xpNeed: 100,
+  level: 1,
+  playing: false,
+  boost: false,
+  brake: false,
+  tickInterval: null,
+  particlesPool: []
+};
 
-const fuelBar=document.getElementById("fuelBar");
-const fuelPercent=document.getElementById("fuelPercent");
-const progressBar=document.getElementById("progressBar");
-const progressPercent=document.getElementById("progressPercent");
-const statusText=document.getElementById("statusText");
-const levelEl=document.getElementById("level");
+/* --- DOM refs --- */
+const fuelBar = document.getElementById('fuelBar');
+const fuelPercent = document.getElementById('fuelPercent');
+const progressBar = document.getElementById('progressBar');
+const progressPercent = document.getElementById('progressPercent');
+const statusText = document.getElementById('statusText');
+const startBtn = document.getElementById('startBtn');
+const boostBtn = document.getElementById('boostBtn');
+const brakeBtn = document.getElementById('brakeBtn');
+const sendScoreBtn = document.getElementById('sendScoreBtn');
+const playBig = document.getElementById('playBig');
+const leadersBig = document.getElementById('leadersBig');
+const infoBig = document.getElementById('infoBig');
+const xpBar = document.getElementById('xpBar');
+const xpText = document.getElementById('xpText');
+const levelEl = document.getElementById('level');
+const shipArt = document.getElementById('shipArt');
+const artWrap = document.getElementById('artWrap');
+const particles = document.getElementById('particles');
+const atmoOverlay = document.getElementById('atmoOverlay');
 
+/* --- Utility helpers --- */
+function clamp(v, a=0, b=100){ return Math.max(a, Math.min(b, v)); }
+function rand(min, max){ return Math.random()*(max-min)+min; }
+
+/* --- Particles (engine plumes + atmosphere) --- */
+function createParticle(x, y, color){
+  const el = document.createElement('div');
+  el.style.position = 'absolute';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = (rand(6,18)) + 'px';
+  el.style.height = el.style.width;
+  el.style.borderRadius = '50%';
+  el.style.background = color;
+  el.style.opacity = 0.9;
+  el.style.transform = 'translateY(0) scale(1)';
+  el.style.pointerEvents = 'none';
+  particles.appendChild(el);
+
+  const life = rand(700,1400);
+  const dx = rand(-60,60);
+  const dy = rand(-80,-160);
+  el.animate([
+    { transform:'translateY(0) scale(1)', opacity:0.9, left: x+'px'},
+    { transform:'translate('+dx+'px,'+dy+'px) scale(0.3)', opacity:0 }
+  ], { duration: life, easing: 'cubic-bezier(.2,.9,.2,1)' });
+  setTimeout(()=> el.remove(), life+80);
+}
+
+/* spawn engine particles while boosting or when running */
+let engineParticleTimer = null;
+function startEngineParticles(){
+  if(engineParticleTimer) return;
+  engineParticleTimer = setInterval(()=>{
+    const rect = artWrap.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const bottom = rect.top + rect.height*0.78;
+    const offsetX = rand(-48,48);
+    const color = state.boost ? 'rgba(46,230,196,'+rand(0.5,0.9)+')' : 'rgba(46,230,196,'+rand(0.2,0.6)+')';
+    createParticle(cx + offsetX - rect.left, bottom - rect.top, color);
+  }, state.boost ? 80 : 180);
+}
+function stopEngineParticles(){
+  clearInterval(engineParticleTimer);
+  engineParticleTimer = null;
+}
+
+/* atmosphere particles (when entering atmosphere) */
+function spawnAtmosphereBurst(){
+  const rect = artWrap.getBoundingClientRect();
+  for(let i=0;i<20;i++){
+    const x = rand(20, rect.width-20);
+    const y = rand(rect.height*0.2, rect.height*0.9);
+    createParticle(x, y, 'rgba(255,140,60,'+rand(0.6,0.95)+')');
+  }
+  // flash overlay
+  atmoOverlay.classList.add('active');
+  setTimeout(()=> atmoOverlay.classList.remove('active'), 900);
+}
+
+/* --- UI update --- */
 function updateUI(){
-  fuelBar.style.width=fuel+"%";
-  fuelPercent.textContent=Math.round(fuel)+"%";
-  progressBar.style.width=progress+"%";
-  progressPercent.textContent=Math.round(progress)+"%";
-  statusText.textContent=playing?(boost?"boost":brake?"braking":"running"):"idle";
-  levelEl.textContent=level;
+  fuelBar.style.width = clamp(state.fuel)+'%';
+  fuelPercent.textContent = Math.max(0, Math.round(state.fuel)) + '%';
+  progressBar.style.width = clamp(state.progress)+'%';
+  progressPercent.textContent = Math.round(state.progress) + '%';
+  xpBar.style.width = clamp((state.xp/state.xpNeed)*100, 0, 100) + '%';
+  xpText.textContent = `XP: ${Math.round(state.xp)} / ${state.xpNeed}`;
+  levelEl.textContent = state.level;
+  statusText.textContent = state.playing ? (state.boost ? 'boost' : state.brake ? 'braking' : 'running') : 'idle';
+  // engine glow intensity
+  const glow = document.querySelector('.engine-glow .g');
+  if(glow){
+    glow.style.opacity = (state.boost ? '1' : (state.playing ? '0.85' : '0.4'));
+    glow.style.transform = state.boost ? 'scale(1.06)' : 'scale(1)';
+  }
+  // ship subtle tilt when boost/brake
+  if(state.boost) shipArt.style.transform = 'translateY(-6px) scale(1.02)';
+  else if(state.brake) shipArt.style.transform = 'translateY(2px) scale(0.995)';
+  else shipArt.style.transform = 'translateY(0) scale(1)';
 }
 
+/* --- tick loop --- */
 function startTick(){
-  if(tick) return;
-  tick=setInterval(()=>{
-    if(!playing) return;
-    let drain=0.18+(boost?0.6:0)-(brake?0.12:0);
-    fuel-=drain;if(fuel<0) fuel=0;
+  if(state.tickInterval) return;
+  state.tickInterval = setInterval(()=>{
+    if(!state.playing) return;
+    // fuel consumption
+    const baseDrain = 0.15; // per tick
+    const drain = baseDrain + (state.boost?0.72:0) - (state.brake?0.08:0);
+    state.fuel = clamp(state.fuel - drain, 0, 100);
 
-    let prog=0.12+(boost?1.2:0)-(brake?0.08:0);
-    progress+=prog;
+    // progress
+    const baseProgress = 0.12;
+    const prog = baseProgress + (state.boost?1.35:0) - (state.brake?0.06:0);
+    state.progress = clamp(state.progress + prog, 0, 100);
 
-    if(fuel<=0){progress-=0.6;if(progress<0)progress=0;}
-    if(progress>=100){progress=100;endRun(true);}
+    // XP gains proportional to progress increments (small)
+    state.xp += prog * 0.4;
+
+    // engine particles on running
+    startEngineParticles();
+
+    // when fuel is empty -> progress penalty
+    if(state.fuel <= 0){
+      state.progress = clamp(state.progress - 0.6, 0, 100);
+      // small shake to show problems
+      artWrap.classList.add('shake');
+      setTimeout(()=> artWrap.classList.remove('shake'), 120);
+    }
+
+    // atmosphere event around 70%
+    if(state.progress > 70 && state.progress < 75){
+      spawnAtmosphereBurst();
+    }
+
+    // when reach 100% -> finish run
+    if(state.progress >= 100){
+      endRun(true);
+    }
+
+    // level up when XP >= need
+    if(state.xp >= state.xpNeed){
+      state.xp -= state.xpNeed;
+      state.level++;
+      state.xpNeed = Math.round(state.xpNeed * 1.18); // next level harder
+      // reward
+      showReward(`Level up! 🎉 Level ${state.level}`);
+    }
+
     updateUI();
-  },200);
+  }, 200);
 }
 
-function stopTick(){clearInterval(tick);tick=null;}
+function stopTick(){
+  clearInterval(state.tickInterval);
+  state.tickInterval = null;
+  stopEngineParticles();
+}
 
+/* --- run controls --- */
 function startRun(){
-  if(playing) return;
-  playing=true;boost=false;brake=false;
+  if(state.playing) return;
+  state.playing = true;
+  state.boost = false;
+  state.brake = false;
+  // small UI feedback
+  artWrap.classList.remove('shake');
+  updateUI();
   startTick();
+  safeOpenWebApp();
 }
-
-function endRun(win){
-  playing=false;stopTick();
-  if(win){statusText.textContent="landed! 🎉";level++;setTimeout(resetForNext,800);}
-  else statusText.textContent="stopped";
+function endRun(win=false){
+  state.playing = false;
+  stopTick();
+  if(win){
+    // award XP and reset some values
+    const gained = 40 + Math.round(Math.random()*30);
+    state.xp += gained;
+    // small reward visual
+    showReward(`Landed! +${gained} XP`);
+    // reset for next run after short pause
+    setTimeout(()=> resetForNext(), 1000);
+  } else {
+    showReward('Run stopped');
+  }
+  updateUI();
+}
+function resetForNext(){
+  state.fuel = 100;
+  state.progress = 4;
   updateUI();
 }
 
-function resetForNext(){fuel=100;progress=4;updateUI()}
+/* --- reward popup --- */
+function showReward(text){
+  const badge = document.createElement('div');
+  badge.textContent = text;
+  badge.style.position='fixed';
+  badge.style.left = '50%';
+  badge.style.top = '18%';
+  badge.style.transform = 'translateX(-50%)';
+  badge.style.padding = '12px 18px';
+  badge.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.6), rgba(255,255,255,0.03))';
+  badge.style.borderRadius = '14px';
+  badge.style.boxShadow = '0 12px 40px rgba(0,0,0,0.6)';
+  badge.style.zIndex = 9999;
+  badge.style.fontWeight = '800';
+  document.body.appendChild(badge);
+  setTimeout(()=> badge.animate([{opacity:1, transform:'translateX(-50%) translateY(0)'}, {opacity:0, transform:'translateX(-50%) translateY(-20px)'}], {duration:900,easing:'ease',fill:'forwards'}),1200);
+  setTimeout(()=> badge.remove(), 2100);
+}
 
-document.getElementById("startBtn").onclick=()=>{startRun()};
-document.getElementById("boostBtn").onmousedown=()=>{boost=true};
-document.getElementById("boostBtn").onmouseup=()=>{boost=false};
-document.getElementById("brakeBtn").onmousedown=()=>{brake=true};
-document.getElementById("brakeBtn").onmouseup=()=>{brake=false};
+/* --- safe open for telegram webapp --- */
+function safeOpenWebApp(){
+  try{
+    if(window.Telegram && Telegram.WebApp){
+      // If we run inside Telegram, no need to open — it's embedded
+      // But show main button if available
+      if(Telegram.WebApp.showMainButton) Telegram.WebApp.showMainButton();
+    } else {
+      // open new window/tab to itself (Telegram will intercept when opened from bot)
+      const url = window.location.href;
+      window.open(url, '_blank');
+    }
+  }catch(e){
+    console.warn(e);
+    window.open(window.location.href, '_blank');
+  }
+}
 
-document.getElementById("sendScoreBtn").onclick=()=>alert("Score отправлен (заглушка)");
-document.getElementById("playBig").onclick=()=>startRun();
-document.getElementById("leadersBig").onclick=()=>alert("Лидеры появятся позже");
-document.getElementById("infoBig").onclick=()=>alert("Проект ZVIZDYUK: мини-игра про полёт к Земле");
+/* --- event bindings --- */
+startBtn.addEventListener('click', ()=> startRun());
+
+// boost: mousedown/touchstart sets, mouseup/touchend clears
+function bindHold(el, startFn, endFn){
+  el.addEventListener('mousedown', e=> { e.preventDefault(); startFn(); });
+  el.addEventListener('touchstart', e=> { e.preventDefault(); startFn(); }, {passive:false});
+  window.addEventListener('mouseup', ()=> endFn());
+  window.addEventListener('touchend', ()=> endFn());
+}
+
+bindHold(boostBtn, ()=> { state.boost = true; artWrap.classList.add('shake'); updateUI(); startEngineParticles(); }, ()=>{
+  state.boost = false; artWrap.classList.remove('shake'); updateUI(); stopEngineParticles();
+});
+bindHold(brakeBtn, ()=> { state.brake = true; updateUI(); }, ()=> { state.brake = false; updateUI(); });
+
+sendScoreBtn.addEventListener('click', ()=> {
+  // placeholder — here you can call backend endpoint to store score
+  alert('Score отправлен (заглушка)');
+});
+
+playBig.addEventListener('click', ()=> {
+  startRun();
+  safeOpenWebApp();
+});
+leadersBig.addEventListener('click', ()=> {
+  alert('Лидеры появятся позже (заглушка)');
+});
+infoBig.addEventListener('click', ()=> {
+  alert('Проект ZVIZDYUK — мини-игра про полёт к Земле. Подписывайся на канал.');
+});
+
+/* init UI */
 updateUI();
-startTick();
-</script>
 
+/* start idle engine particles (subtle) */
+setTimeout(()=> { startEngineParticles(); stopEngineParticles(); }, 400);
+
+/* keyboard debug: space = start/stop */
+document.addEventListener('keydown', (e)=> {
+  if(e.code === 'Space'){
+    if(!state.playing) startRun(); else endRun(false);
+  }
+});
+
+/* helpful note to user about assets:
+   The <img> sources currently point to:
+   - logo:   /mnt/data/A_digital_illustration_logo_showcases_the_name_"ZV.png
+   - bg:     /mnt/data/A_digital_space_illustration_showcases_a_vast_expa.png (used as page background)
+   - art:    /mnt/data/ComfyUI_00013_.png
+   If you will move files to your repo, change src paths accordingly (e.g. to /images/logo.png, /images/bg.png, /images/cockpit.png)
+*/
+</script>
 </body>
 </html>
