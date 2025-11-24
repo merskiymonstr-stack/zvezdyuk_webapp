@@ -5,331 +5,213 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Zvezdyuk — Ship Run (Enhanced)</title>
 
-<!-- styles -->
+<!--
+  ВАЖНО:
+  Помести свои изображения сюда:
+    telegram_game/public/images/cockpit.png
+    telegram_game/public/images/logo.png
+    telegram_game/public/images/stars_bg.png
+-->
+
 <style>
   :root{
-    --bg-start:#020617;
-    --bg-end:#071022;
-    --panel:#09141b;
+    --bg-start: #020617;
+    --bg-end: #071022;
+    --panel:#0b1220;
     --accent:#2ee6c4;
-    --accent-2:#46f0d0;
+    --accent-2:#7be9d6;
     --muted:#98a0b3;
+    --btn:#12232b;
     --glass: rgba(255,255,255,0.03);
     --glass-2: rgba(255,255,255,0.02);
     --danger:#ff6b6b;
-    --gold:#ffd166;
+    --gold: #ffd166;
   }
-  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,var(--bg-start) 0%, var(--bg-end) 100%); color:#eef2f7; -webkit-font-smoothing:antialiased}
-  .wrap{max-width:1024px;margin:0 auto;padding:20px;box-sizing:border-box;position:relative; z-index:2;}
-  body:before{
-    /* decorative space background */
-    content:"";
-    position:fixed;inset:0;z-index:0;
-    background-image: url('/mnt/data/A_digital_space_illustration_showcases_a_vast_expa.png');
-    background-size:cover; background-position:center;
-    opacity:0.14; filter: blur(6px) saturate(1.1);
-    pointer-events:none;
-  }
-
-  /* HUD */
-  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;z-index:5}
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: radial-gradient(1200px 600px at 20% 10%, rgba(46,230,196,0.03), transparent), linear-gradient(180deg,var(--bg-start) 0%, var(--bg-end) 100%); color:#eef2f7; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+  .wrap{max-width:980px;margin:0 auto;padding:22px;box-sizing:border-box;position:relative;min-height:100vh;}
+  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
   .logo{display:flex;gap:12px;align-items:center}
-  .logo img{width:56px;height:56px;border-radius:12px;object-fit:cover;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .logo img{width:56px;height:56px;border-radius:10px;object-fit:cover;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .title{line-height:1}
   .title h1{margin:0;font-size:18px;letter-spacing:-0.02em}
   .title p{margin:0;font-size:12px;color:var(--muted)}
-
-  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:14px;box-shadow: 0 8px 40px rgba(2,8,20,0.6); overflow:hidden; position:relative; z-index:3;}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:18px;border-radius:14px;box-shadow: 0 10px 40px rgba(2,8,20,0.6); overflow:hidden; position:relative}
   .game-area{display:flex;flex-direction:column;gap:14px}
   .art{display:flex;align-items:center;justify-content:center;height:360px;border-radius:12px;background:linear-gradient(180deg,#061124, #071226); overflow:hidden; position:relative}
-  .art img{max-height:92%; max-width:92%; object-fit:contain; transform:translateY(6px); transition: transform 220ms ease}
-  /* engine glow layer */
-  .engine-glow{position:absolute;left:0;right:0;bottom:26%;height:120px;pointer-events:none;mix-blend-mode:screen;opacity:0.9}
-  .engine-glow .g{position:absolute;left:50%;transform:translateX(-50%);width:220px;height:220px;border-radius:50%;filter:blur(40px); background: radial-gradient(circle at 50% 40%, rgba(46,230,196,0.9), rgba(46,230,196,0.25) 40%, transparent 60%)}
-  /* flame particles container */
-  .particles{position:absolute;left:0;right:0;bottom:8%;height:120px;pointer-events:none; overflow:visible}
-
-  .fuel-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
-  .meter{flex:1;margin-left:10px;height:14px;background:var(--glass);border-radius:10px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
-  .meter > i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:70%;transition:width 300ms cubic-bezier(.2,.9,.2,1)}
-  .meter-label{font-size:13px;color:var(--muted)}
-
-  .controls{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
-  .btn{flex:1;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,#0c1a20, #07151a);border:1px solid rgba(255,255,255,0.03);color:#e9fbf6;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;box-shadow: 0 8px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none}
-  .btn.secondary{background:linear-gradient(180deg,#0b1318,#061018); color:var(--muted); font-weight:700}
-  .btn.small{padding:10px;border-radius:10px;font-size:14px}
-
-  .progress-row{display:flex;gap:10px;align-items:center}
-  .progress-track{height:10px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
-  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:8%;transition:width 300ms ease}
-  .footer-actions{display:flex;gap:10px;justify-content:space-between;margin-top:12px}
-
-  .muted{color:var(--muted);font-size:13px}
-
-  /* big bottom buttons (Telegram-style) */
-  .bottom-actions{position:fixed;left:16px;right:16px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:60}
-  .tg-btn{background:rgba(255,255,255,0.03);border-radius:14px;padding:14px 16px;color:#eef2f7;font-weight:800;text-align:center;box-shadow: 0 12px 40px rgba(0,0,0,0.6);cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
-  .tg-btn .icon{margin-right:8px}
-
-  /* shake on boost */
-  .shake{animation:shake 250ms ease-in-out 0s 3}
-  @keyframes shake{
+  .art .stars{position:absolute;inset:0;background-image:url('/images/stars_bg.png');background-size:cover;background-position:center;opacity:0.12;filter:blur(3px);z-index:0}
+  .art img{max-height:85%; max-width:85%; object-fit:contain; transform:translateY(6px); z-index:1; transition:transform 220ms ease, filter 300ms ease}
+  .art.shake img{animation:shake 300ms ease-in-out 3}
+  @keyframes shake {
     0%{transform:translateY(0) rotate(0deg)}
-    25%{transform:translateY(-4px) rotate(-0.5deg)}
-    50%{transform:translateY(0) rotate(0.5deg)}
-    75%{transform:translateY(-2px) rotate(-0.25deg)}
-    100%{transform:translateY(0) rotate(0deg)}
+    25%{transform:translateY(-4px) rotate(-0.6deg)}
+    50%{transform:translateY(0px) rotate(0.4deg)}
+    75%{transform:translateY(-2px) rotate(-0.4deg)}
+    100%{transform:translateY(0) rotate(0)}
   }
-
-  /* atmosphere overlay (flashes) */
-  .atmo-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity 600ms ease}
-  .atmo-overlay.active{opacity:0.95}
-  .atmo-overlay .flash{position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,120,45,0.85), transparent 30%); mix-blend-mode:screen;filter:blur(30px);}
-
-  /* XP / Level box */
-  .xp-box{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-  .xp-bar{height:8px;background:rgba(255,255,255,0.02);border-radius:8px;overflow:hidden;flex:1}
-  .xp-bar > i{height:100%;background:linear-gradient(90deg, #ffd166, #ff8a65);width:30%;transition:width 300ms}
-
-  /* reward badge */
-  .reward{display:inline-block;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));font-weight:700;color:var(--gold)}
-
-  /* responsive */
+  .engine-flame{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:200px;height:120px;pointer-events:none;z-index:0;opacity:0.7}
+  .engine-flame .flame{width:100%;height:100%;background:radial-gradient(circle at 50% 20%, rgba(46,230,196,0.45) 0%, rgba(46,230,196,0.18) 15%, rgba(0,0,0,0) 50%), radial-gradient(circle at 50% 80%, rgba(46,230,196,0.35) 10%, rgba(46,230,196,0.06) 25%, rgba(0,0,0,0) 60%);filter:blur(16px);border-radius:50%;mix-blend-mode:screen;transform-origin:center; transition:transform 180ms linear;}
+  .engine-flame.boost .flame{transform:scale(1.18)}
+  .fuel-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
+  .meter{flex:1;margin-left:10px;height:12px;background:var(--glass);border-radius:8px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+  .meter > i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:70%;transition:width 400ms cubic-bezier(.2,.9,.2,1)}
+  .meter-label{font-size:12px;color:var(--muted)}
+  .controls{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
+  .btn{flex:1;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,var(--btn), #0d1d23);border:1px solid rgba(255,255,255,0.03);color:#e9fbf6;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;box-shadow: 0 6px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none}
+  .btn.secondary{background:linear-gradient(180deg,#0d1720,#0b1318); color:var(--muted); font-weight:600}
+  .btn.small{padding:10px;border-radius:10px;font-size:14px;flex:1}
+  .progress-row{display:flex;gap:10px;align-items:center}
+  .progress-track{height:8px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:8%;transition:width 400ms ease}
+  .footer-actions{display:flex;gap:10px;justify-content:space-between;margin-top:12px;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  .xp-pill{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;color:var(--muted);font-weight:600}
+  /* big bottom buttons (Telegram-style) */
+  .bottom-actions{position:fixed;left:12px;right:12px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:60}
+  .tg-btn{background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;color:#eef2f7;font-weight:700;text-align:center;box-shadow: 0 12px 40px rgba(0,0,0,0.6);cursor:pointer}
+  .tg-btn .icon{margin-right:8px}
+  /* small screens */
   @media(max-width:720px){
-    .wrap{padding:12px}
     .art{height:260px}
-    .logo img{width:48px;height:48px}
+    .wrap{padding:14px}
   }
+  /* subtle glass blur */
+  .panel:before{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); pointer-events:none}
+  /* button active style */
+  .btn:active{transform:translateY(1px)}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hud">
-      <div class="logo">
-        <!-- logo: положи файл в ту же систему или используй путь ниже -->
-        <img id="logoImg" src="/mnt/data/A_digital_illustration_logo_showcases_the_name_%22ZV.png" alt="ZV logo">
-        <div class="title">
-          <h1>Zvezdyuk — Ship Run</h1>
-          <p>Мини-игра: доберись до Земли</p>
-        </div>
-      </div>
-
-      <div class="xp-box">
-        <div style="min-width:72px">Level <strong id="level">1</strong></div>
-        <div class="xp-bar" aria-hidden="true"><i id="xpBar" style="width:18%"></i></div>
-        <div style="min-width:96px;text-align:right;font-size:13px;color:var(--muted)"><span id="xpText">XP: 18 / 100</span></div>
+<div class="wrap">
+  <div class="hud">
+    <div class="logo">
+      <img id="logoImg" alt="ZVlogo" src="/images/logo.png">
+      <div class="title">
+        <h1>Zvezdyuk — Ship Run</h1>
+        <p>Мини-игра: доберись до Земли</p>
       </div>
     </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="xp-pill">Level <strong id="level">1</strong></div>
+      <div class="xp-pill" style="min-width:160px;text-align:center;">XP: <span id="xpVal">0</span> / <span id="xpGoal">100</span></div>
+    </div>
+  </div>
 
-    <div class="panel game-area">
-      <div class="art" id="artWrap">
-        <!-- central cockpit / character art (путь к файлу в контейнере) -->
-        <img id="shipArt" class="ship-float" src="/mnt/data/ComfyUI_00013_.png" alt="Zvezdyuk cockpit">
-        <!-- engine glow -->
-        <div class="engine-glow" aria-hidden="true"><div class="g"></div></div>
-        <!-- particles holder -->
-        <div class="particles" id="particles"></div>
-        <!-- atmosphere overlay -->
-        <div class="atmo-overlay" id="atmoOverlay"><div class="flash"></div></div>
-      </div>
+  <div class="panel game-area">
+    <div class="art" id="artWrap">
+      <div class="stars" aria-hidden="true"></div>
+      <img id="shipArt" class="ship-float" src="/images/cockpit.png" alt="Zvezdyuk cockpit">
+      <div class="engine-flame" id="engineFlame" aria-hidden="true"><div class="flame"></div></div>
+    </div>
 
-      <div class="fuel-row">
-        <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
-        <div class="meter" aria-hidden="true"><i id="fuelBar" style="width:100%"></i></div>
-      </div>
+    <div class="fuel-row">
+      <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
+      <div class="meter" aria-hidden="true"><i id="fuelBar" style="width:100%"></i></div>
+    </div>
 
-      <div class="controls">
-        <button id="boostBtn" class="btn small">🚀 Boost</button>
-        <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
-        <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
-      </div>
+    <div class="controls">
+      <button id="boostBtn" class="btn small">🚀 Boost</button>
+      <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
+      <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
+    </div>
 
-      <div class="footer-actions">
-        <div class="progress-row" style="flex:1">
+    <div class="footer-actions">
+      <div style="flex:1">
+        <div class="progress-row">
           <div class="muted">Progress</div>
-          <div class="progress-track" style="margin-left:8px;flex:1"><div id="progressBar" class="progress-bar" style="width:4%"></div></div>
-          <div class="muted" style="min-width:48px;text-align:right"><span id="progressPercent">4%</span></div>
+          <div class="progress-track" style="margin-left:8px;"><div id="progressBar" class="progress-bar" style="width:4%"></div></div>
+          <div class="muted" style="width:40px;text-align:right;"><span id="progressPercent">4%</span></div>
         </div>
-
-        <div style="display:flex;gap:12px;align-items:center;margin-left:12px">
-          <button id="startBtn" class="btn">▶ Start</button>
-          <div style="width:8px"></div>
-          <div class="muted">Status: <span id="statusText">idle</span></div>
-        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-left:10px">
+        <button id="startBtn" class="btn" style="width:84px">▶ Start</button>
+        <div class="muted">Status: <span id="statusText">idle</span></div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="bottom-actions" id="bottomActions">
-    <div id="playBig" class="tg-btn">🎮 Играть</div>
-    <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
-    <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
-  </div>
+<div class="bottom-actions" id="bottomActions">
+  <div id="playBig" class="tg-btn">🎮 Играть</div>
+  <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
+  <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
+</div>
 
-<!-- scripts -->
 <script>
-/* --- Game state --- */
-const state = {
-  fuel: 100,
-  progress: 4,
-  xp: 18,
-  xpNeed: 100,
-  level: 1,
-  playing: false,
-  boost: false,
-  brake: false,
-  tickInterval: null,
-  particlesPool: []
-};
+/* ----------------------
+   GAME + UI + TELEGRAM
+   ---------------------- */
 
-/* --- DOM refs --- */
 const fuelBar = document.getElementById('fuelBar');
 const fuelPercent = document.getElementById('fuelPercent');
 const progressBar = document.getElementById('progressBar');
 const progressPercent = document.getElementById('progressPercent');
 const statusText = document.getElementById('statusText');
-const startBtn = document.getElementById('startBtn');
-const boostBtn = document.getElementById('boostBtn');
-const brakeBtn = document.getElementById('brakeBtn');
-const sendScoreBtn = document.getElementById('sendScoreBtn');
-const playBig = document.getElementById('playBig');
-const leadersBig = document.getElementById('leadersBig');
-const infoBig = document.getElementById('infoBig');
-const xpBar = document.getElementById('xpBar');
-const xpText = document.getElementById('xpText');
 const levelEl = document.getElementById('level');
-const shipArt = document.getElementById('shipArt');
+const xpValEl = document.getElementById('xpVal');
+const xpGoalEl = document.getElementById('xpGoal');
+
 const artWrap = document.getElementById('artWrap');
-const particles = document.getElementById('particles');
-const atmoOverlay = document.getElementById('atmoOverlay');
+const shipArt = document.getElementById('shipArt');
+const engineFlame = document.getElementById('engineFlame');
 
-/* --- Utility helpers --- */
-function clamp(v, a=0, b=100){ return Math.max(a, Math.min(b, v)); }
-function rand(min, max){ return Math.random()*(max-min)+min; }
+let fuel = 100;
+let progress = 4;
+let playing = false;
+let boost = false;
+let brake = false;
+let tickInterval = null;
+let level = 1;
+let xp = 18;
+let xpGoal = 100;
 
-/* --- Particles (engine plumes + atmosphere) --- */
-function createParticle(x, y, color){
-  const el = document.createElement('div');
-  el.style.position = 'absolute';
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.style.width = (rand(6,18)) + 'px';
-  el.style.height = el.style.width;
-  el.style.borderRadius = '50%';
-  el.style.background = color;
-  el.style.opacity = 0.9;
-  el.style.transform = 'translateY(0) scale(1)';
-  el.style.pointerEvents = 'none';
-  particles.appendChild(el);
+xpValEl.textContent = xp;
+xpGoalEl.textContent = xpGoal;
 
-  const life = rand(700,1400);
-  const dx = rand(-60,60);
-  const dy = rand(-80,-160);
-  el.animate([
-    { transform:'translateY(0) scale(1)', opacity:0.9, left: x+'px'},
-    { transform:'translate('+dx+'px,'+dy+'px) scale(0.3)', opacity:0 }
-  ], { duration: life, easing: 'cubic-bezier(.2,.9,.2,1)' });
-  setTimeout(()=> el.remove(), life+80);
-}
-
-/* spawn engine particles while boosting or when running */
-let engineParticleTimer = null;
-function startEngineParticles(){
-  if(engineParticleTimer) return;
-  engineParticleTimer = setInterval(()=>{
-    const rect = artWrap.getBoundingClientRect();
-    const cx = rect.left + rect.width/2;
-    const bottom = rect.top + rect.height*0.78;
-    const offsetX = rand(-48,48);
-    const color = state.boost ? 'rgba(46,230,196,'+rand(0.5,0.9)+')' : 'rgba(46,230,196,'+rand(0.2,0.6)+')';
-    createParticle(cx + offsetX - rect.left, bottom - rect.top, color);
-  }, state.boost ? 80 : 180);
-}
-function stopEngineParticles(){
-  clearInterval(engineParticleTimer);
-  engineParticleTimer = null;
-}
-
-/* atmosphere particles (when entering atmosphere) */
-function spawnAtmosphereBurst(){
-  const rect = artWrap.getBoundingClientRect();
-  for(let i=0;i<20;i++){
-    const x = rand(20, rect.width-20);
-    const y = rand(rect.height*0.2, rect.height*0.9);
-    createParticle(x, y, 'rgba(255,140,60,'+rand(0.6,0.95)+')');
-  }
-  // flash overlay
-  atmoOverlay.classList.add('active');
-  setTimeout(()=> atmoOverlay.classList.remove('active'), 900);
-}
-
-/* --- UI update --- */
+// UI update
 function updateUI(){
-  fuelBar.style.width = clamp(state.fuel)+'%';
-  fuelPercent.textContent = Math.max(0, Math.round(state.fuel)) + '%';
-  progressBar.style.width = clamp(state.progress)+'%';
-  progressPercent.textContent = Math.round(state.progress) + '%';
-  xpBar.style.width = clamp((state.xp/state.xpNeed)*100, 0, 100) + '%';
-  xpText.textContent = `XP: ${Math.round(state.xp)} / ${state.xpNeed}`;
-  levelEl.textContent = state.level;
-  statusText.textContent = state.playing ? (state.boost ? 'boost' : state.brake ? 'braking' : 'running') : 'idle';
-  // engine glow intensity
-  const glow = document.querySelector('.engine-glow .g');
-  if(glow){
-    glow.style.opacity = (state.boost ? '1' : (state.playing ? '0.85' : '0.4'));
-    glow.style.transform = state.boost ? 'scale(1.06)' : 'scale(1)';
+  fuelBar.style.width = (fuel<=0?0:fuel) + '%';
+  fuelPercent.textContent = Math.max(0,Math.round(fuel)) + '%';
+  progressBar.style.width = Math.max(0,Math.round(progress)) + '%';
+  progressPercent.textContent = Math.round(progress) + '%';
+  statusText.textContent = playing ? (boost ? 'boost' : brake ? 'braking' : 'running') : 'idle';
+  levelEl.textContent = level;
+  xpValEl.textContent = xp + ' /';
+  // engine flame effect
+  if(boost){
+    engineFlame.classList.add('boost');
+    artWrap.classList.add('shake');
+  } else {
+    engineFlame.classList.remove('boost');
+    artWrap.classList.remove('shake');
   }
-  // ship subtle tilt when boost/brake
-  if(state.boost) shipArt.style.transform = 'translateY(-6px) scale(1.02)';
-  else if(state.brake) shipArt.style.transform = 'translateY(2px) scale(0.995)';
-  else shipArt.style.transform = 'translateY(0) scale(1)';
 }
 
-/* --- tick loop --- */
+// Tick loop
 function startTick(){
-  if(state.tickInterval) return;
-  state.tickInterval = setInterval(()=>{
-    if(!state.playing) return;
+  if(tickInterval) return;
+  tickInterval = setInterval(()=>{
+    if(!playing) return;
     // fuel consumption
-    const baseDrain = 0.15; // per tick
-    const drain = baseDrain + (state.boost?0.72:0) - (state.brake?0.08:0);
-    state.fuel = clamp(state.fuel - drain, 0, 100);
+    const baseDrain = 0.16; // per tick
+    const drain = baseDrain + (boost?0.6:0) - (brake?0.08:0);
+    fuel -= drain;
+    fuel = Math.max(0, fuel);
 
     // progress
-    const baseProgress = 0.12;
-    const prog = baseProgress + (state.boost?1.35:0) - (state.brake?0.06:0);
-    state.progress = clamp(state.progress + prog, 0, 100);
+    const baseProgress = 0.10;
+    const prog = baseProgress + (boost?1.1:0) - (brake?0.06:0);
+    progress += prog;
 
-    // XP gains proportional to progress increments (small)
-    state.xp += prog * 0.4;
-
-    // engine particles on running
-    startEngineParticles();
-
-    // when fuel is empty -> progress penalty
-    if(state.fuel <= 0){
-      state.progress = clamp(state.progress - 0.6, 0, 100);
-      // small shake to show problems
-      artWrap.classList.add('shake');
-      setTimeout(()=> artWrap.classList.remove('shake'), 120);
+    // no fuel penalty
+    if(fuel <= 0){
+      progress -= 0.6;
+      if(progress < 0) progress = 0;
     }
 
-    // atmosphere event around 70%
-    if(state.progress > 70 && state.progress < 75){
-      spawnAtmosphereBurst();
-    }
-
-    // when reach 100% -> finish run
-    if(state.progress >= 100){
+    // clamp
+    if(progress >= 100){
+      progress = 100;
       endRun(true);
-    }
-
-    // level up when XP >= need
-    if(state.xp >= state.xpNeed){
-      state.xp -= state.xpNeed;
-      state.level++;
-      state.xpNeed = Math.round(state.xpNeed * 1.18); // next level harder
-      // reward
-      showReward(`Level up! 🎉 Level ${state.level}`);
     }
 
     updateUI();
@@ -337,134 +219,143 @@ function startTick(){
 }
 
 function stopTick(){
-  clearInterval(state.tickInterval);
-  state.tickInterval = null;
-  stopEngineParticles();
+  clearInterval(tickInterval);
+  tickInterval = null;
 }
 
-/* --- run controls --- */
 function startRun(){
-  if(state.playing) return;
-  state.playing = true;
-  state.boost = false;
-  state.brake = false;
-  // small UI feedback
-  artWrap.classList.remove('shake');
-  updateUI();
+  if(playing) return;
+  playing = true;
+  boost = false;
+  brake = false;
+  statusText.textContent = 'starting';
   startTick();
-  safeOpenWebApp();
+  // small visual: briefly animate ship to center
+  shipArt.style.filter = 'brightness(1.06) saturate(1.05)';
+  setTimeout(()=> shipArt.style.filter = '', 800);
 }
+
 function endRun(win=false){
-  state.playing = false;
+  playing = false;
   stopTick();
   if(win){
-    // award XP and reset some values
-    const gained = 40 + Math.round(Math.random()*30);
-    state.xp += gained;
-    // small reward visual
-    showReward(`Landed! +${gained} XP`);
-    // reset for next run after short pause
-    setTimeout(()=> resetForNext(), 1000);
+    statusText.textContent = 'landed! 🎉';
+    // reward XP and increment level when threshold reached
+    const gained = 15 + Math.round(Math.random()*10);
+    addXP(gained);
+    setTimeout(()=> resetForNext(), 900);
   } else {
-    showReward('Run stopped');
+    statusText.textContent = 'stopped';
   }
   updateUI();
 }
+
 function resetForNext(){
-  state.fuel = 100;
-  state.progress = 4;
+  fuel = 100;
+  progress = 4;
   updateUI();
 }
 
-/* --- reward popup --- */
-function showReward(text){
-  const badge = document.createElement('div');
-  badge.textContent = text;
-  badge.style.position='fixed';
-  badge.style.left = '50%';
-  badge.style.top = '18%';
-  badge.style.transform = 'translateX(-50%)';
-  badge.style.padding = '12px 18px';
-  badge.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.6), rgba(255,255,255,0.03))';
-  badge.style.borderRadius = '14px';
-  badge.style.boxShadow = '0 12px 40px rgba(0,0,0,0.6)';
-  badge.style.zIndex = 9999;
-  badge.style.fontWeight = '800';
-  document.body.appendChild(badge);
-  setTimeout(()=> badge.animate([{opacity:1, transform:'translateX(-50%) translateY(0)'}, {opacity:0, transform:'translateX(-50%) translateY(-20px)'}], {duration:900,easing:'ease',fill:'forwards'}),1200);
-  setTimeout(()=> badge.remove(), 2100);
-}
-
-/* --- safe open for telegram webapp --- */
-function safeOpenWebApp(){
-  try{
-    if(window.Telegram && Telegram.WebApp){
-      // If we run inside Telegram, no need to open — it's embedded
-      // But show main button if available
-      if(Telegram.WebApp.showMainButton) Telegram.WebApp.showMainButton();
-    } else {
-      // open new window/tab to itself (Telegram will intercept when opened from bot)
-      const url = window.location.href;
-      window.open(url, '_blank');
-    }
-  }catch(e){
-    console.warn(e);
-    window.open(window.location.href, '_blank');
+// XP / Leveling
+function addXP(amount){
+  xp += amount;
+  // level up while xp >= goal
+  while(xp >= xpGoal){
+    xp -= xpGoal;
+    level++;
+    xpGoal = Math.round(xpGoal * 1.25); // scale goal
+    // show small celebration
+    flashLevel();
   }
+  xpValEl.textContent = xp;
+  xpGoalEl.textContent = xpGoal;
 }
 
-/* --- event bindings --- */
-startBtn.addEventListener('click', ()=> startRun());
-
-// boost: mousedown/touchstart sets, mouseup/touchend clears
-function bindHold(el, startFn, endFn){
-  el.addEventListener('mousedown', e=> { e.preventDefault(); startFn(); });
-  el.addEventListener('touchstart', e=> { e.preventDefault(); startFn(); }, {passive:false});
-  window.addEventListener('mouseup', ()=> endFn());
-  window.addEventListener('touchend', ()=> endFn());
+// small level flash
+function flashLevel(){
+  levelEl.style.transform = 'scale(1.08)';
+  levelEl.style.color = 'var(--gold)';
+  setTimeout(()=>{ levelEl.style.transform=''; levelEl.style.color=''; }, 700);
 }
 
-bindHold(boostBtn, ()=> { state.boost = true; artWrap.classList.add('shake'); updateUI(); startEngineParticles(); }, ()=>{
-  state.boost = false; artWrap.classList.remove('shake'); updateUI(); stopEngineParticles();
+// events for buttons
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  startRun();
+  safeOpenWebApp(); // if user clicked from bot, ensure WebApp opens
 });
-bindHold(brakeBtn, ()=> { state.brake = true; updateUI(); }, ()=> { state.brake = false; updateUI(); });
+const boostBtn = document.getElementById('boostBtn');
+boostBtn.addEventListener('pointerdown', ()=>{ boost=true; updateUI() });
+boostBtn.addEventListener('pointerup', ()=>{ boost=false; updateUI() });
+boostBtn.addEventListener('touchstart', ()=>{ boost=true; updateUI() });
+boostBtn.addEventListener('touchend', ()=>{ boost=false; updateUI() });
 
-sendScoreBtn.addEventListener('click', ()=> {
-  // placeholder — here you can call backend endpoint to store score
-  alert('Score отправлен (заглушка)');
+const brakeBtn = document.getElementById('brakeBtn');
+brakeBtn.addEventListener('pointerdown', ()=>{ brake=true; updateUI() });
+brakeBtn.addEventListener('pointerup', ()=>{ brake=false; updateUI() });
+brakeBtn.addEventListener('touchstart', ()=>{ brake=true; updateUI() });
+brakeBtn.addEventListener('touchend', ()=>{ brake=false; updateUI() });
+
+document.getElementById('sendScoreBtn').addEventListener('click', ()=>{
+  // For now — simple copy to clipboard / alert; later call backend
+  const score = Math.round(progress);
+  try {
+    navigator.clipboard && navigator.clipboard.writeText(`Zvezdyuk ShipRun score: ${score}%`);
+    alert('Score copied to clipboard: ' + score + '% (placeholder)');
+  } catch(e){
+    alert('Score: ' + score + '% (placeholder)');
+  }
 });
 
-playBig.addEventListener('click', ()=> {
+// big bottom buttons
+document.getElementById('playBig').addEventListener('click', ()=>{
   startRun();
   safeOpenWebApp();
 });
-leadersBig.addEventListener('click', ()=> {
-  alert('Лидеры появятся позже (заглушка)');
+document.getElementById('leadersBig').addEventListener('click', ()=>{
+  alert('Лидеры появятся позже (заглушка).');
 });
-infoBig.addEventListener('click', ()=> {
-  alert('Проект ZVIZDYUK — мини-игра про полёт к Земле. Подписывайся на канал.');
+document.getElementById('infoBig').addEventListener('click', ()=>{
+  alert('Проект ZVIZDYUK — игра о путешествии к Земле. Следи за обновлениями!');
 });
 
-/* init UI */
-updateUI();
-
-/* start idle engine particles (subtle) */
-setTimeout(()=> { startEngineParticles(); stopEngineParticles(); }, 400);
-
-/* keyboard debug: space = start/stop */
-document.addEventListener('keydown', (e)=> {
-  if(e.code === 'Space'){
-    if(!state.playing) startRun(); else endRun(false);
+// Try safely to open the current web app in Telegram (if inside Telegram it should already be opened)
+function safeOpenWebApp(){
+  try {
+    if(window.Telegram && Telegram.WebApp){
+      // If embedded inside Telegram — the WebApp is already present.
+      // But if user clicked inside bot and we need to expand main button:
+      Telegram.WebApp.ready && Telegram.WebApp.ready();
+      // optional: Telegram.WebApp.showPopup? Not necessary.
+    } else {
+      // open app URL in new window (when clicked from browser)
+      const url = window.location.href;
+      window.open(url, '_blank');
+    }
+  } catch(e){
+    console.warn('safeOpenWebApp failed', e);
+    window.open(window.location.href,'_blank');
   }
+}
+
+// init
+updateUI();
+startTick(); // run tick so progress stays in sync (will do nothing until playing=true)
+
+// Prevent accidental scroll while pressing controls on mobile
+['touchstart','touchmove','touchend'].forEach(ev=>{
+  document.addEventListener(ev, function(e){}, {passive:true});
 });
 
-/* helpful note to user about assets:
-   The <img> sources currently point to:
-   - logo:   /mnt/data/A_digital_illustration_logo_showcases_the_name_"ZV.png
-   - bg:     /mnt/data/A_digital_space_illustration_showcases_a_vast_expa.png (used as page background)
-   - art:    /mnt/data/ComfyUI_00013_.png
-   If you will move files to your repo, change src paths accordingly (e.g. to /images/logo.png, /images/bg.png, /images/cockpit.png)
-*/
+/* ----------------------------
+   Notes and next steps:
+   - Assets must be in /public/images/ as:
+       cockpit.png
+       logo.png
+       stars_bg.png
+   - For leaderboard / persistent scores use Supabase/Firebase and call APIs from sendScoreBtn
+   - To run inside Telegram WebApp: ensure Bot's web app url points to your deployed site,
+     and that when user clicks the bot button, Telegram opens the URL inside WebView.
+   ---------------------------- */
 </script>
 </body>
 </html>
