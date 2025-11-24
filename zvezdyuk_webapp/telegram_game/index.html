@@ -1,11 +1,4 @@
-<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Zvezdyuk — Ship Run</title>
-
-<style>
+<!doctype html><html lang="ru"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" /><title>Zvezdyuk — Ship Run</title><style>
   :root{
     --bg:#020617;
     --bg2:#071022;
@@ -19,7 +12,8 @@
   html,body{
     height:100%;
     margin:0;
-    background: url("/public/images/stars_bg.png") center/cover no-repeat fixed,
+    /* ИСПРАВЛЕН ПУТЬ */
+    background: url("/images/stars_bg.png") center/cover no-repeat fixed,
                 linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);
     font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;
     color:#eef2f7;
@@ -32,6 +26,7 @@
   }
 
   .logo{display:flex;gap:10px;align-items:center;}
+  /* ИСПРАВЛЕН ПУТЬ */
   .logo img{width:58px;height:58px;border-radius:14px;object-fit:cover;}
 
   .title h1{margin:0;font-size:20px;font-weight:700;}
@@ -158,17 +153,11 @@
     padding:14px 16px;background:rgba(255,255,255,0.05);
     border-radius:12px;text-align:center;
     font-size:17px;font-weight:600;cursor:pointer;
-  }
-</style>
-
-</head>
-<body>
-
-<div class="wrap">
+  }</style></head><body><script src="https://telegram.org/js/telegram-web-app.js"></script><div class="wrap">
 
   <div class="hud">
     <div class="logo">
-      <img src="/public/images/logo.png" alt="ZVlogo">
+      <img src="/images/logo.png" alt="ZVlogo">
       <div class="title">
         <h1>Zvezdyuk — Ship Run</h1>
         <p>Мини-игра: доберись до Земли</p>
@@ -181,7 +170,7 @@
 
   <div class="panel">
     <div class="art" id="shipArea">
-      <img id="shipArt" src="/public/images/cockpit.png" alt="cockpit">
+      <img id="shipArt" src="/images/cockpit.png" alt="cockpit">
       <div class="engine-fire" id="engineFire"></div>
       <div class="atmo" id="atmoFX"></div>
     </div>
@@ -202,43 +191,16 @@
       <div class="btn" id="startBtn">▶ Start</div>
     </div>
 
-  </div>
-
-</div>
-
-<div class="bottom-actions">
+  </div></div><div class="bottom-actions">
   <div class="tg-btn" id="playBtn">🎮 Играть</div>
   <div class="tg-btn" id="leadersBtn">🏆 Лидеры</div>
-  <div class="tg-btn" id="infoBtn">ℹ️ Информация</div>
-</div>
-
-<script>
-/* ———————————— GAME STATE ————————————— */
-
-let fuel = 100;
-let progress = 0;
-let xp = 0;
-let level = 1;
-let playing = false;
-let boosting = false;
-let braking = false;
-
-const fuelBar = document.getElementById("fuelBar");
-const fuelText = document.getElementById("fuelText");
-const progressBar = document.getElementById("progressBar");
-const shipArea = document.getElementById("shipArea");
-const engineFire = document.getElementById("engineFire");
-const atmoFX = document.getElementById("atmoFX");
-
-function updateUI(){
+  <div class="tg-btn" id="infoBtn">ℹ️ Информация</div></div><script>/* ———————————— GAME STATE ————————————— */let fuel = 100;let progress = 0;let xp = 0;let level = 1;let playing = false;let boosting = false;let braking = false;const fuelBar = document.getElementById("fuelBar");const fuelText = document.getElementById("fuelText");const progressBar = document.getElementById("progressBar");const shipArea = document.getElementById("shipArea");const engineFire = document.getElementById("engineFire");const atmoFX = document.getElementById("atmoFX");function updateUI(){
   fuelBar.style.width = fuel + "%";
   fuelText.textContent = Math.round(fuel) + "%";
   progressBar.style.width = progress + "%";
   document.getElementById("xp").textContent = xp;
   document.getElementById("level").textContent = level;
-}
-
-function tick(){
+}function tick(){
   if(!playing) return;
   let drain = 0.15;
   let gain = 0.12;
@@ -246,8 +208,12 @@ function tick(){
   if(boosting){
     drain += 0.6;
     gain += 1.2;
-    engineFire.style.opacity = 1;
-  } else engineFire.style.opacity = 0;
+    // engineFire.style.opacity = 1; // Убрал, т.к. используется в CSS классе ниже
+    shipArea.classList.add('engine-on');
+  } else {
+    // engineFire.style.opacity = 0; // Убрал, т.к. используется в CSS классе ниже
+    shipArea.classList.remove('engine-on');
+  }
 
   if(braking){
     drain -= 0.1;
@@ -272,16 +238,10 @@ function tick(){
   }
 
   updateUI();
-}
-
-setInterval(tick, 200);
-
-function startGame(){
+}setInterval(tick, 200);function startGame(){
   playing = true;
   shipArea.classList.add("shake");
-}
-
-function win(){
+}function win(){
   playing = false;
   shipArea.classList.remove("shake");
   xp += 30;
@@ -289,40 +249,54 @@ function win(){
     level++;
     xp = 0;
   }
+  
+  // —————— ОТПРАВКА СЧЕТА В TELEGRAM ——————
+  if(window.Telegram && Telegram.WebApp.initDataUnsafe){
+      const finalScore = Math.round(progress * 10) + level * 100; // Пример расчета
+      
+      // Отправка данных боту. Бот увидит строку, например: 'score:1030'
+      Telegram.WebApp.sendData(`score:${finalScore}`);
+      
+      // Показываем пользователю всплывающее уведомление
+      Telegram.WebApp.showAlert(`✅ Успех! Счет ${finalScore} отправлен.`);
+  } else {
+      alert("Победа! Счет 1000. В Mini App данные будут отправлены боту.");
+  }
+  // ——————————————————————————————————————
+
   fuel = 100;
   progress = 0;
   updateUI();
-}
-
-/* ———————————— BUTTONS ————————————— */
-
-document.getElementById("startBtn").onclick = ()=>{
-  startGame();
+}/* ———————————— BUTTONS ————————————— */document.getElementById("startBtn").onclick = ()=>{
+  if (!playing) startGame();
 };
-
-document.getElementById("boostBtn").onmousedown = ()=> boosting = true;
-document.getElementById("boostBtn").onmouseup = ()=> boosting = false;
-
-document.getElementById("brakeBtn").onmousedown = ()=> braking = true;
-document.getElementById("brakeBtn").onmouseup = ()=> braking = false;
-
+// Добавил тач-события для лучшей работы на мобильных
+document.getElementById("boostBtn").onmousedown = document.getElementById("boostBtn").ontouchstart = ()=> boosting = true;
+document.getElementById("boostBtn").onmouseup = document.getElementById("boostBtn").ontouchend = ()=> boosting = false;
+document.getElementById("brakeBtn").onmousedown = document.getElementById("brakeBtn").ontouchstart = ()=> braking = true;
+document.getElementById("brakeBtn").onmouseup = document.getElementById("brakeBtn").ontouchend = ()=> braking = false;
 document.getElementById("scoreBtn").onclick = ()=>{
-  alert("Скор скоро отправится в бот");
-};
-
-document.getElementById("playBtn").onclick = ()=>{
-  startGame();
-};
-
-document.getElementById("leadersBtn").onclick = ()=> alert("Лидеры появятся позже");
-document.getElementById("infoBtn").onclick = ()=> alert("Мир Zvezdyuk — в разработке");
-
-/* Telegram WebApp safe */
-if(window.Telegram){
+  // Отправлять счет вручную не нужно, он отправляется при победе
+  alert("Счет отправляется автоматически при успешном приземлении.");
+};document.getElementById("playBtn").onclick = ()=>{
+  if (!playing) startGame();
+};document.getElementById("leadersBtn").onclick = ()=> {
+  if(window.Telegram) {
+    // Используйте MainButton для навигации или OpenLink, а не alert
+    Telegram.WebApp.showAlert("Лидеры пока в разработке. Скоро откроется внешний Link!");
+  } else {
+     alert("Лидеры появятся позже");
+  }
+};document.getElementById("infoBtn").onclick = ()=> {
+  if(window.Telegram) {
+    Telegram.WebApp.showAlert("Мир Zvezdyuk — в разработке.");
+  } else {
+    alert("Мир Zvezdyuk — в разработке");
+  }
+};/* Telegram WebApp safe */if(window.Telegram){
+  // Загружаем Telegram WebApp скрипт (хотя его лучше ставить в <head>)
+  // В этом коде мы его поставили выше.
   Telegram.WebApp.expand();
-}
-updateUI();
-</script>
-
-</body>
-</html>
+  // Опционально: изменить цвет MainButton
+  // Telegram.WebApp.setHeaderColor('#0b1220');
+}updateUI();</script></body></html>
