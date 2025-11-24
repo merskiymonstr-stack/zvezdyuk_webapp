@@ -1,72 +1,242 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zvezdyuk — Ship Run</title>
-    <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Zvezdyuk — Ship Run</title>
+
+<style>
+  :root{
+    --bg:#071022;
+    --panel:#0b1220;
+    --accent:#2ee6c4;
+    --muted:#98a0b3;
+    --btn:#12232b;
+    --glass: rgba(255,255,255,0.04);
+    --glass-2: rgba(255,255,255,0.03);
+    --danger:#ff6b6b;
+  }
+
+  html,body{
+    height:100%;margin:0;
+    font-family:Inter, system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    background:linear-gradient(180deg,#020617 0%, #071022 100%);
+    color:#eef2f7;
+  }
+
+  .wrap{max-width:980px;margin:0 auto;padding:18px;box-sizing:border-box;}
+
+  .hud{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logo{display:flex;gap:12px;align-items:center}
+  .logo img{
+    width:56px;height:56px;border-radius:12px;object-fit:cover;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6)
+  }
+
+  .title h1{margin:0;font-size:18px;letter-spacing:-0.02em}
+  .title p{margin:0;font-size:12px;color:var(--muted)}
+
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:12px;border-radius:14px;box-shadow:0 6px 30px rgba(2,8,20,0.6);overflow:hidden
+  }
+
+  .game-area{display:flex;flex-direction:column;gap:12px}
+
+  .art{
+    display:flex;align-items:center;justify-content:center;
+    height:220px;border-radius:12px;
+    background:linear-gradient(180deg,#061124,#071226);
+    overflow:hidden;position:relative
+  }
+
+  .art img{
+    max-height:100%;max-width:100%;object-fit:contain;
+    transform:translateY(6px);
+  }
+
+  .fuel-row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
+
+  .meter{
+    flex:1;margin-left:10px;height:12px;background:var(--glass);
+    border-radius:8px;position:relative;overflow:hidden
+  }
+
+  .meter > i{
+    position:absolute;left:0;top:0;bottom:0;
+    background:linear-gradient(90deg,var(--accent),#7be9d6);
+    width:70%;transition:width 400ms cubic-bezier(.2,.9,.2,1)
+  }
+
+  .meter-label{font-size:12px;color:var(--muted)}
+
+  .controls{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
+
+  .btn{
+    flex:1;padding:12px 14px;border-radius:12px;
+    background:linear-gradient(180deg,var(--btn), #0d1d23);
+    border:1px solid rgba(255,255,255,0.04);color:#e9fbf6;
+    font-weight:600;display:flex;align-items:center;justify-content:center;
+    gap:10px;font-size:15px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.6);cursor:pointer;user-select:none
+  }
+
+  .btn.secondary{background:linear-gradient(180deg,#0d1720,#0b1318);color:var(--muted)}
+  .btn.small{padding:8px;border-radius:10px;font-size:14px}
+
+  .progress-row{display:flex;gap:10px;align-items:center}
+
+  .progress-track{height:8px;background:var(--glass-2);border-radius:8px;overflow:hidden;flex:1}
+  .progress-bar{height:100%;background:linear-gradient(90deg,#8bf4cf,#2ee6c4);width:4%;transition:width 400ms ease}
+
+  .footer-actions{margin-top:12px}
+
+  .muted{color:var(--muted);font-size:13px}
+
+  .bottom-actions{
+    position:fixed;left:12px;right:12px;bottom:18px;
+    display:flex;flex-direction:column;gap:10px;z-index:60
+  }
+
+  .tg-btn{
+    background:rgba(255,255,255,0.04);border-radius:12px;padding:14px 16px;
+    color:#eef2f7;font-weight:700;text-align:center;
+    box-shadow:0 12px 40px rgba(0,0,0,0.6);cursor:pointer
+  }
+
+  @media(min-width:720px){
+    .wrap{padding:28px}
+    .art{height:360px}
+    .hud .title h1{font-size:20px}
+  }
+
+  .ship-float{animation:float 3.2s ease-in-out infinite}
+  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+</style>
 </head>
 
 <body>
 
-    <div class="game-container">
+<div class="wrap">
 
-        <!-- Заголовок -->
-        <div class="header">
-            <img src="images/logo.png" class="logo" alt="Zvezdyuk logo" />
-            <div>
-                <h1>Zvezdyuk — Ship Run</h1>
-                <p>Мини-игра: доберись до Земли</p>
-            </div>
-            <span class="level">Level 1</span>
-        </div>
+  <div class="hud">
+    <div class="logo">
+      <img id="characterArt" src="/images/character.png" alt="Zvezdyuk">
+      <div class="title">
+        <h1>Zvezdyuk — Ship Run</h1>
+        <p>Мини-игра: доберись до Земли</p>
+      </div>
+    </div>
+    <div class="muted">Level <strong id="level">1</strong></div>
+  </div>
 
-        <!-- Основная игровая область -->
-        <div class="game-panel">
+  <div class="panel game-area">
 
-            <!-- ТВОЯ КАРТИНКА ПО ЦЕНТРУ -->
-            <div class="center-image-wrapper">
-                <img src="images/cockpit.png" class="center-image" alt="Zvezdyuk cockpit" />
-            </div>
-
-            <!-- Топливо -->
-            <div class="fuel-block">
-                <span>Fuel: <b id="fuelValue">100%</b></span>
-                <div class="fuel-bar">
-                    <div class="fuel-fill" id="fuelFill"></div>
-                </div>
-            </div>
-
-            <!-- Кнопки управления -->
-            <div class="controls">
-                <button class="btn boost" id="boostBtn">🚀 Boost</button>
-                <button class="btn brake" id="brakeBtn">🛑 Brake</button>
-                <button class="btn score" id="scoreBtn">🏁 Send Score</button>
-            </div>
-
-            <!-- Прогресс -->
-            <div class="progress-row">
-                <span>Progress</span>
-                <span id="progressValue">0%</span>
-            </div>
-
-            <!-- Start -->
-            <div class="start-row">
-                <button class="start-btn" id="startBtn">▶ Start</button>
-                <span class="status">Status: <span id="status">idle</span></span>
-            </div>
-
-        </div>
-
-        <!-- Кнопки Telegram -->
-        <div class="menu-buttons">
-            <button class="menu-btn">🎮 Играть</button>
-            <button class="menu-btn">🏆 Лидеры</button>
-            <button class="menu-btn">ℹ️ Информация</button>
-        </div>
-
+    <div class="art">
+      <img id="shipArt" class="ship-float" src="/images/cockpit.png" alt="Zvezdyuk">
     </div>
 
-    <script src="script.js"></script>
+    <div class="fuel-row">
+      <div class="meter-label">Fuel: <strong id="fuelPercent">100%</strong></div>
+      <div class="meter"><i id="fuelBar" style="width:100%"></i></div>
+    </div>
+
+    <div class="controls">
+      <button id="boostBtn" class="btn small">🚀 Boost</button>
+      <button id="brakeBtn" class="btn small secondary">🛑 Brake</button>
+      <button id="sendScoreBtn" class="btn small secondary">🏁 Send Score</button>
+    </div>
+
+    <div class="footer-actions">
+      <div class="progress-row">
+        <div class="muted">Progress</div>
+        <div class="progress-track">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <div class="muted"><span id="progressPercent">4%</span></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button id="startBtn" class="btn">▶ Start</button>
+        <div style="flex:1"></div>
+        <div class="muted">Status: <span id="statusText">idle</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="bottom-actions">
+  <div id="playBig" class="tg-btn">🎮 Играть</div>
+  <div id="leadersBig" class="tg-btn">🏆 Лидеры</div>
+  <div id="infoBig" class="tg-btn">ℹ️ Информация</div>
+</div>
+
+<script>
+let fuel=100,progress=4,playing=false,boost=false,brake=false,level=1,tick=null;
+
+const fuelBar=document.getElementById("fuelBar");
+const fuelPercent=document.getElementById("fuelPercent");
+const progressBar=document.getElementById("progressBar");
+const progressPercent=document.getElementById("progressPercent");
+const statusText=document.getElementById("statusText");
+const levelEl=document.getElementById("level");
+
+function updateUI(){
+  fuelBar.style.width=fuel+"%";
+  fuelPercent.textContent=Math.round(fuel)+"%";
+  progressBar.style.width=progress+"%";
+  progressPercent.textContent=Math.round(progress)+"%";
+  statusText.textContent=playing?(boost?"boost":brake?"braking":"running"):"idle";
+  levelEl.textContent=level;
+}
+
+function startTick(){
+  if(tick) return;
+  tick=setInterval(()=>{
+    if(!playing) return;
+    let drain=0.18+(boost?0.6:0)-(brake?0.12:0);
+    fuel-=drain;if(fuel<0) fuel=0;
+
+    let prog=0.12+(boost?1.2:0)-(brake?0.08:0);
+    progress+=prog;
+
+    if(fuel<=0){progress-=0.6;if(progress<0)progress=0;}
+    if(progress>=100){progress=100;endRun(true);}
+    updateUI();
+  },200);
+}
+
+function stopTick(){clearInterval(tick);tick=null;}
+
+function startRun(){
+  if(playing) return;
+  playing=true;boost=false;brake=false;
+  startTick();
+}
+
+function endRun(win){
+  playing=false;stopTick();
+  if(win){statusText.textContent="landed! 🎉";level++;setTimeout(resetForNext,800);}
+  else statusText.textContent="stopped";
+  updateUI();
+}
+
+function resetForNext(){fuel=100;progress=4;updateUI()}
+
+document.getElementById("startBtn").onclick=()=>{startRun()};
+document.getElementById("boostBtn").onmousedown=()=>{boost=true};
+document.getElementById("boostBtn").onmouseup=()=>{boost=false};
+document.getElementById("brakeBtn").onmousedown=()=>{brake=true};
+document.getElementById("brakeBtn").onmouseup=()=>{brake=false};
+
+document.getElementById("sendScoreBtn").onclick=()=>alert("Score отправлен (заглушка)");
+document.getElementById("playBig").onclick=()=>startRun();
+document.getElementById("leadersBig").onclick=()=>alert("Лидеры появятся позже");
+document.getElementById("infoBig").onclick=()=>alert("Проект ZVIZDYUK: мини-игра про полёт к Земле");
+updateUI();
+startTick();
+</script>
+
 </body>
 </html>
